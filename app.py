@@ -184,7 +184,9 @@ with col6:
     )
 with col7:
     company = st.selectbox(
-        "Company", ["Dell", "HP", "Lenovo", "Asus", "Apple", "Acer", "MSI"]
+        "Company", ['Apple', 'HP', 'Acer', 'Asus', 'Dell', 'Lenovo', 'Chuwi', 'MSI',
+       'Microsoft', 'Toshiba', 'Huawei', 'Xiaomi', 'Vero', 'Razer',
+       'Mediacom', 'Samsung', 'Google', 'Fujitsu', 'LG']
     )
 
 col8, col9, col10 = st.columns(3)
