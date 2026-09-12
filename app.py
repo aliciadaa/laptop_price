@@ -138,18 +138,70 @@ st.markdown(
 )
 
 # ----------------------------------------------------------------------------
-# Dropdown options berdasarkan nilai unik pada data training
+# Helper: urutkan kategori ordinal berdasarkan rank dictionary
+# (bukan berdasarkan urutan insersi dict, supaya tetap benar walau
+#  dictionary di file .pkl diubah urutannya di kemudian hari)
 # ----------------------------------------------------------------------------
+def order_by_rank(rank_dict, exclude=None):
+    exclude = exclude or []
+    items = [(k, v) for k, v in rank_dict.items() if k not in exclude]
+    return [k for k, v in sorted(items, key=lambda kv: kv[1])]
+
+# ----------------------------------------------------------------------------
+# Dropdown options
+# ----------------------------------------------------------------------------
+# Numerik: urut naik alami (kecil -> besar)
 RAM_OPTIONS = [2, 4, 6, 8, 12, 16, 24, 32, 64]
-RES_W_OPTIONS = [1366, 1440, 1600, 1920, 2160, 2256, 2304, 2560, 2736, 2880, 3200, 3840]
+RES_W_OPTIONS = [1366, 1440, 1600, 1920, 2160, 2256, 2304, 2400, 2560, 2736, 2880, 3200, 3840]
 CPU_GHZ_OPTIONS = sorted([
     0.9, 1.0, 1.1, 1.2, 1.3, 1.44, 1.5, 1.6, 1.8, 1.9, 1.92,
     2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9,
     3.0, 3.1, 3.2, 3.6,
 ])
 
+# Ordinal: urut berdasarkan rank yang sama persis dipakai model saat training
+# ("Other" disembunyikan dari pilihan karena itu kategori fallback internal,
+#  bukan pilihan yang biasa dipilih user secara sadar)
+CPU_SERIES_OPTIONS = order_by_rank(cpu_rank_mapping, exclude=["Other"])
+STORAGE_OPTIONS = order_by_rank(storage_rank_mapping)
+
+# Nominal tanpa urutan alami (Company, dsb) -> diurutkan manual dari
+# rata-rata Price_euros di data training (murah -> mahal), supaya makin
+# ke bawah pilihan makin "premium". Dihitung sekali dari dataset training.
+TYPENAME_OPTIONS = ["Netbook", "Notebook", "2 in 1 Convertible", "Ultrabook", "Gaming", "Workstation"]
+COMPANY_OPTIONS = [
+    "Vero", "Mediacom", "Chuwi", "Acer", "Fujitsu", "HP", "Lenovo", "Asus",
+    "Xiaomi", "Dell", "Toshiba", "Samsung", "Huawei", "Apple", "Microsoft",
+    "Google", "MSI", "LG", "Razer",
+]
+GPU_BRAND_OPTIONS = ["Other", "AMD", "Intel", "Nvidia"]
+CPU_BRAND_OPTIONS = ["AMD", "Samsung", "Intel"]
+OPSYS_OPTIONS = ["Android", "Chrome OS", "No OS", "Linux", "Windows", "macOS"]
+
 # ----------------------------------------------------------------------------
-# Input: Spesifikasi Utama
+# Input: Tipe & Brand (dipindah ke atas)
+# ----------------------------------------------------------------------------
+st.markdown('<div class="input-card">', unsafe_allow_html=True)
+st.markdown('<div class="section-header">🏷️ Tipe & Brand</div>', unsafe_allow_html=True)
+
+col6, col7 = st.columns(2)
+with col6:
+    typename = st.selectbox("Type", TYPENAME_OPTIONS, index=TYPENAME_OPTIONS.index("Notebook"))
+with col7:
+    company = st.selectbox("Company", COMPANY_OPTIONS, index=COMPANY_OPTIONS.index("Dell"))
+
+col8, col9, col10 = st.columns(3)
+with col8:
+    gpu_brand = st.selectbox("GPU Brand", GPU_BRAND_OPTIONS, index=GPU_BRAND_OPTIONS.index("Intel"))
+with col9:
+    cpu_brand = st.selectbox("CPU Brand", CPU_BRAND_OPTIONS, index=CPU_BRAND_OPTIONS.index("Intel"))
+with col10:
+    opsys = st.selectbox("OS", OPSYS_OPTIONS, index=OPSYS_OPTIONS.index("Windows"))
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ----------------------------------------------------------------------------
+# Input: Spesifikasi Utama (dipindah ke bawah)
 # ----------------------------------------------------------------------------
 st.markdown('<div class="input-card">', unsafe_allow_html=True)
 st.markdown('<div class="section-header">🔧 Spesifikasi Utama</div>', unsafe_allow_html=True)
@@ -164,38 +216,9 @@ with col3:
 
 col4, col5 = st.columns(2)
 with col4:
-    cpu_series = st.selectbox("CPU Series", list(cpu_rank_mapping.keys()))
+    cpu_series = st.selectbox("CPU Series", CPU_SERIES_OPTIONS, index=CPU_SERIES_OPTIONS.index("Core i5"))
 with col5:
-    memory_type = st.selectbox("Storage Type", list(storage_rank_mapping.keys()))
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-# ----------------------------------------------------------------------------
-# Input: Tipe & Brand
-# ----------------------------------------------------------------------------
-st.markdown('<div class="input-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-header">🏷️ Tipe & Brand</div>', unsafe_allow_html=True)
-
-col6, col7 = st.columns(2)
-with col6:
-    typename = st.selectbox(
-        "Type",
-        ["Notebook", "Ultrabook", "Gaming", "Netbook", "Workstation", "2 in 1 Convertible"],
-    )
-with col7:
-    company = st.selectbox(
-        "Company", ['Apple', 'HP', 'Acer', 'Asus', 'Dell', 'Lenovo', 'Chuwi', 'MSI',
-       'Microsoft', 'Toshiba', 'Huawei', 'Xiaomi', 'Vero', 'Razer',
-       'Mediacom', 'Samsung', 'Google', 'Fujitsu', 'LG']
-    )
-
-col8, col9, col10 = st.columns(3)
-with col8:
-    gpu_brand = st.selectbox("GPU Brand", ["Intel", "Nvidia", "AMD"])
-with col9:
-    cpu_brand = st.selectbox("CPU Brand", ["Intel", "AMD", "Samsung"])
-with col10:
-    opsys = st.selectbox("OS", ["Windows", "macOS", "Linux", "No OS", "Chrome OS"])
+    memory_type = st.selectbox("Storage Type", STORAGE_OPTIONS, index=STORAGE_OPTIONS.index("SSD"))
 
 st.markdown('</div>', unsafe_allow_html=True)
 
